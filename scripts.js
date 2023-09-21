@@ -37,35 +37,44 @@ const handleDragOver = (event) => {
     updateDraggingHtml({ over: column })
 }
 
-
 const handleDragStart = (event) => {
+    orderId = event.target.dataset.id;
+    event.dataTransfer.setData('text/plain', orderId);
 
 }
 const handleDragEnd = (event) => {
+    event.preventDefault();
+    console.log('Drag end event fired.')
+    const id = event.dataTransfer.getData('text/plain');
+    const targetColumn = event.target.parentElement.dataset.area;
 
-    // event.preventDefault();
-
-    // // Get the dragged order's ID from the dataTransfer object
-    // const id = event.dataTransfer.getData('text/plain');
-
-    // // Determine the column where the order was dropped
-    // const targetColumn = event.target.dataset.area;
-
-    // if (!targetColumn) {
-    //     // The order was not dropped onto a valid target column
-    //     return;
-    // }
-
-    // // Update the order's data to reflect the new column
-    // updateOrderColumn(id, targetColumn);
-
-    // // Update the visual representation of the order element
-    // moveOrderElement(id, targetColumn);
-
-    // // Reset the dragging state
-    // updateDragging({ source: null, over: null });
+    if (!targetColumn) {
+        console.log('INVALID DROPZONE')
+        return; // Order was not dropped onto a valid target column
+    }
+    console.log(targetColumn)
+    // Instead of moveToColumn, you can insert your custom logic here to update the order's column
+    // For example, you might want to update the order's state or perform an API request
+    // For now, let's just update the order element's dataset
+    orderElement = document.querySelector(`[data-id="${id}"]`);
+    targetColumn.appendChild(orderElement);
+    updateDraggingHtml({ over: null }); // Clear drag
 }
 
+const handleDrop = (event) => {
+    event.preventDefault();
+    event.target.classlist.remove('dragover')
+    id = event.dataTransfer.getData('text/plain')
+   
+    // Determine the column where the order was dropped
+    const targetColumn =  event.target.dataset.area;
+    console.log(targetColumn)
+    event.target.appendChild(document.querySelector(`[data-id="${id}"]`))
+
+    // if (targetColumn) {
+    //     moveToColumn(id, targetColumn);
+    // }
+}
 
 const handleHelpToggle = (event) => {
     if (html.help.overlay.style.display === 'block') {
@@ -74,6 +83,7 @@ const handleHelpToggle = (event) => {
         html.help.overlay.style.display = 'block';
     }
 }
+
 const handleAddToggle = (event) => {
     if (html.add.overlay.style.display === 'block') {
         html.add.overlay.style.display = 'none';
@@ -82,7 +92,7 @@ const handleAddToggle = (event) => {
     }
 }
 
-
+ 
 const item = document.querySelector('[data-order-title]')
 const selectTable = document.querySelector('[data-order-table]')
 const selectStatus = document.getElementsByClassName('order__value')
@@ -107,7 +117,6 @@ const handleEditToggle = (event) => {
         else html.edit.overlay.style.display = 'block';
 }
 
-
 const handleEditSubmit = (event) => {
     event.preventDefault(); 
     let newColumn = html.edit.column.value
@@ -116,10 +125,8 @@ const handleEditSubmit = (event) => {
     document.querySelector(`[data-id="${id}"] [data-order-title]`).textContent = html.edit.title.value;
     document.querySelector(`[data-id="${id}"] [data-order-table]`).textContent = html.edit.table.value;
     html.edit.overlay.style.display = 'none';
- 
+
 }
-
-
 
 const handleDelete = (event) => {
     html.edit.overlay.style.display = 'none';
@@ -138,15 +145,15 @@ html.edit.delete.addEventListener('click', handleDelete)
 html.help.cancel.addEventListener('click', handleHelpToggle)
 html.other.help.addEventListener('click', handleHelpToggle)
 
-for (const htmlColumn of Object.values(html.columns)) {
-    htmlColumn.addEventListener('dragstart', handleDragStart)
-    htmlColumn.addEventListener('dragend', handleDragEnd)
-}
+// for (const htmlColumn of Object.values(html.columns)) {
+    document.querySelector(`[data-id="${orderId}"]`).addEventListener('dragstart', handleDragStart)
+    document.querySelector(`[data-id="${orderId}"]`).addEventListener('dragend', handleDragEnd)
+// }
 
 for (const htmlArea of Object.values(html.area)) {
     htmlArea.addEventListener('dragover', handleDragOver)
+    htmlArea.addEventListener('drop', handleDrop)
 }
-
 
 // const orderElements = document.querySelectorAll('.order');
 // orderElements.forEach((element) => {
@@ -177,6 +184,7 @@ for (const htmlArea of Object.values(html.area)) {
 //     // Set the data-edit-id attribute to the orderId
 //     html.edit.form.querySelector('[data-edit-id]').value = orderId;
 // }
+
 // function fetchOrderDetails(orderId) {
 //     // Replace this with your logic to fetch order details based on the orderId
 //     // Return an object with the order details
